@@ -1,0 +1,14 @@
+{
+  "name": "웹툰 제작 트래커",
+  "short_name": "웹툰트래커",
+  "description": "웹툰 제작 일정 및 런칭 현황 관리 시스템",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "orientation": "landscape",
+  "icons": [],
+  "categories": ["productivity", "business"],
+  "lang": "ko",
+  "dir": "ltr"
+}

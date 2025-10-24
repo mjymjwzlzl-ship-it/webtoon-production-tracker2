@@ -1,0 +1,5 @@
+{
+  "name": "Webtoon Production Tracker",
+  "description": "An interactive checklist application to track the production progress of webtoon episodes, modeled after an Excel workflow.",
+  "requestFramePermissions": []
+}
