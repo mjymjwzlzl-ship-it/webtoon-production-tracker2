@@ -132,3 +132,49 @@ export interface MonthlySettlementData {
 export interface MonthlySettlementCollection {
   [key: string]: MonthlySettlementData; // key: "2024-01" 형태
 }
+
+// 웹툰 배포 추적 관련 타입
+export interface Webtoon {
+  id: string;
+  title: string;
+  platforms: Record<string, string | null>;
+  type: string;
+  deliveryDay?: string; // 연재 요일 (월요일, 화요일, 수요일, 목요일, 금요일, 토요일, 일요일)
+  platformDeliveries?: { [platform: string]: { [week: number]: boolean } }; // 플랫폼별 주차별 납품 상태
+}
+
+export type SortDirection = 'asc' | 'desc';
+
+export interface SortConfig {
+  key: string;
+  direction: SortDirection;
+}
+
+// 웹툰 플랫폼별 투고 정보
+export interface SubmissionInfo {
+  id: string;
+  companyName: string;
+  submissionMethod: string;
+  submissionSchedule: string;
+  launchConditions: string;
+  contactPersonName: string;
+  contactPersonEmail: string;
+  contactNumber: string;
+  remarks: string;
+}
+
+// 웹툰 플랫폼별 업로드 정보
+export interface UploadInfo {
+  id: string;
+  companyName: string;
+  deliveryDeadline: string;
+  registrationLink: string;
+  loginId: string;
+  password: string;
+  contactPersonName: string;
+  contactPersonEmail: string;
+  contactNumber: string;
+  manuscriptSpec: string;
+  coverBannerSpec: string;
+  thumbnailSpec: string;
+}

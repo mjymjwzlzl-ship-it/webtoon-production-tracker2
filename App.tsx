@@ -14,6 +14,7 @@ import LaunchStatus from './components/LaunchStatus';
 import LaunchSidebar from './components/LaunchSidebar';
 import BulkView from './components/BulkView';
 import ZoomViewer from './components/ZoomViewer';
+import WebtoonTracker from './components/WebtoonTracker';
 import DailyTasks from './components/DailyTasks';
 import UrgentNoticeModal from './components/UrgentNoticeModal';
 import UrgentNoticeBoard from './components/UrgentNoticeBoard';
@@ -146,7 +147,7 @@ const App: React.FC = () => {
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [selectedTeam, setSelectedTeam] = useState<Team | 'all'>('all');
   const [view, setView] = useState<'tracker' | 'workers' | 'dailyTasks'>('tracker');
-  const [mainTab, setMainTab] = useState<'schedule' | 'launch' | 'delivery'>('schedule');
+  const [mainTab, setMainTab] = useState<'schedule' | 'launch' | 'launch2'>('schedule');
   const [isBulkView, setIsBulkView] = useState(false);
   const [showCompletedOnly, setShowCompletedOnly] = useState(false);
   const [bulkViewState, setBulkViewState] = useState<any>(null);
@@ -984,7 +985,7 @@ const App: React.FC = () => {
       }
       
       // 백스페이스 키 처리 (뒤로가기)
-      if (e.key === 'Backspace' && !isBulkView && !e.target.matches('input, textarea, [contenteditable]')) {
+      if (e.key === 'Backspace' && !isBulkView && !(e.target as Element).matches('input, textarea, [contenteditable]')) {
         e.preventDefault();
         console.log('백스페이스 키로 뒤로가기 실행');
         window.history.back();
@@ -1271,7 +1272,7 @@ const App: React.FC = () => {
     }
   };
 
-  const getMainTabClass = (tabName: 'schedule' | 'launch') => {
+  const getMainTabClass = (tabName: 'schedule' | 'launch' | 'launch2') => {
     const baseClasses = "px-4 py-2 font-bold text-sm rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-blue/50 flex items-center justify-center h-10";
     if (mainTab === tabName) {
       return `${baseClasses} bg-primary-blue text-white shadow`;
@@ -1340,19 +1341,17 @@ const App: React.FC = () => {
     return <LaunchStatus projects={projects} onAddProject={() => {}} />;
   }
 
-    // 납품 탭
-    if (mainTab === 'delivery') {
+    // 런칭2 탭
+    if (mainTab === 'launch2') {
       return (
-        <div className="flex-1 p-4 sm:p-6 lg:p-8">
-          <div className="max-w-7xl mx-auto">
-            <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
-              <h2 className="text-xl font-semibold text-slate-800 mb-4">납품 관리</h2>
-              <p className="text-slate-600">납품 관련 기능이 여기에 표시됩니다.</p>
-            </div>
+        <div className="flex-1 p-2 sm:p-3 lg:p-6">
+          <div className="w-full">
+            <WebtoonTracker syncProjects={projects.map(p => ({ id: p.id, title: p.title, status: p.status }))} />
           </div>
         </div>
       );
     }
+
 
     // 일정관리 탭
     if (view === 'tracker') {
@@ -1686,8 +1685,8 @@ const App: React.FC = () => {
                 <button onClick={() => setMainTab('launch')} className={getMainTabClass('launch')}>
                   런칭
                 </button>
-                <button onClick={() => setMainTab('delivery')} className={getMainTabClass('delivery')}>
-                  납품
+                <button onClick={() => setMainTab('launch2')} className={getMainTabClass('launch2')}>
+                  런칭2
                 </button>
                 {mainTab === 'schedule' && (
                   <button
@@ -1724,7 +1723,7 @@ const App: React.FC = () => {
         </header>
         )}
         <main className={`flex-1 overflow-y-auto ${currentPage === 'settlement' ? 'p-0' : 'p-2 sm:p-3 lg:p-6'}`}>
-          <div className={`${currentPage === 'settlement' ? 'h-full' : 'max-w-7xl mx-auto'}`} style={currentPage === 'main' ? { transform: `scale(${zoom / 100})`, transformOrigin: 'top left', width: `${100 / (zoom / 100)}%` } : {}}>
+          <div className={`${currentPage === 'settlement' ? 'h-full' : 'w-full'}`} style={currentPage === 'main' ? { transform: `scale(${zoom / 100})`, transformOrigin: 'top left', width: `${100 / (zoom / 100)}%` } : {}}>
             
             {/* 서브 탭 네비게이션 (일정관리 탭에서만 표시) */}
             {mainTab === 'schedule' && currentPage === 'main' && (
