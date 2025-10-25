@@ -33,6 +33,9 @@ const LaunchSidebar: React.FC<LaunchSidebarProps> = ({
   }
 
   const filteredProjects = useMemo(() => {
+    if (!Array.isArray(projects)) {
+      return [];
+    }
     return projects.filter(project => {
       // 띄어쓰기 무시하고 검색
       const normalizedSearchTerm = searchTerm.toLowerCase().replace(/\s+/g, '');

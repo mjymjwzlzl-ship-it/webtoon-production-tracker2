@@ -131,14 +131,17 @@ const DailyTasks: React.FC<DailyTasksProps> = ({ workers, projects, onTaskStatus
     const project = projects.find(p => p.id === selectedProjectId);
     if (!project) return [];
     
-    return project.processes.filter(process => 
+    return Array.isArray(project.processes) ? project.processes.filter(process => 
       process.assignee === selectedWorkerId &&
       assignment.processes.some(p => p.processId === process.id)
-    );
+    ) : [];
   }, [selectedProjectId, selectedWorkerId, workerAssignments, projects]);
 
   // 선택된 날짜의 할일 목록 필터링
   const filteredTasks = useMemo(() => {
+    if (!Array.isArray(dailyTasks)) {
+      return [];
+    }
     let filtered = dailyTasks;
 
     // 작업자 필터
@@ -165,10 +168,10 @@ const DailyTasks: React.FC<DailyTasksProps> = ({ workers, projects, onTaskStatus
     if (!isOverviewMode) return [];
 
     // 검색 필터 적용
-    let tasksToGroup = dailyTasks;
+    let tasksToGroup = Array.isArray(dailyTasks) ? dailyTasks : [];
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
-      tasksToGroup = dailyTasks.filter(task => 
+      tasksToGroup = tasksToGroup.filter(task => 
         task.workerName.toLowerCase().includes(query) ||
         task.task.toLowerCase().includes(query) ||
         (task.projectTitle && task.projectTitle.toLowerCase().includes(query)) ||
@@ -240,9 +243,9 @@ const DailyTasks: React.FC<DailyTasksProps> = ({ workers, projects, onTaskStatus
     const grouped: Record<string, Worker[]> = {};
     
     teams.forEach(team => {
-      grouped[team] = workers
+      grouped[team] = Array.isArray(workers) ? workers
         .filter(worker => worker.team === team)
-        .sort((a, b) => a.name.localeCompare(b.name, 'ko'));
+        .sort((a, b) => a.name.localeCompare(b.name, 'ko')) : [];
     });
     
     return grouped;

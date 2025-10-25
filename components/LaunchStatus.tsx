@@ -178,26 +178,17 @@ const LaunchStatus: React.FC<LaunchStatusProps> = ({ projects, onAddProject }) =
   };
 
   const filteredProjects = useMemo(() => {
+    if (!Array.isArray(launchProjects)) {
+      return [];
+    }
     let filteredLaunchProjects = launchProjects.filter(p => p.category === categoryFilter);
     
-    // 프로젝트 상태에 따라 적절한 카테고리만 표시
-    // 메인 projects에서 해당 프로젝트의 실제 상태 확인
-    filteredLaunchProjects = filteredLaunchProjects.filter(launchProject => {
-      const mainProject = projects.find(mp => mp.id === launchProject.projectId);
-      if (!mainProject) return true; // 메인 프로젝트를 찾을 수 없으면 표시
-      
-      // 라이브/완결 상태에 따라 적절한 카테고리만 표시
-      const isLiveCategory = categoryFilter.includes('[라이브]');
-      const isCompletedCategory = categoryFilter.includes('[완결]');
-      
-      if (isLiveCategory) {
-        return mainProject.status === 'live';
-      } else if (isCompletedCategory) {
-        return mainProject.status === 'completed';
-      }
-      
-      return true;
-    });
+    // 프로젝트 상태 필터링 완전 제거 - 모든 프로젝트 표시
+    // filteredLaunchProjects = filteredLaunchProjects.filter(launchProject => {
+    //   const mainProject = projects.find(mp => mp.id === launchProject.projectId);
+    //   if (!mainProject) return true;
+    //   return true;
+    // });
     
     // 검색 기능 추가
     if (searchQuery.trim()) {

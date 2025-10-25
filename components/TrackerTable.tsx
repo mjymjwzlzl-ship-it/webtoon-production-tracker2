@@ -69,7 +69,7 @@ const TrackerTable: React.FC<TrackerTableProps> = ({
   }, []);
 
   const allDisplayEpisodes = Array.from({ length: episodeCount }, (_, i) => startEpisode + i);
-  const displayEpisodes = allDisplayEpisodes.filter(ep => !hiddenEpisodes?.includes(ep));
+  const displayEpisodes = allDisplayEpisodes.filter(ep => !Array.isArray(hiddenEpisodes) || !hiddenEpisodes.includes(ep));
   
   // 디버깅용 로그
   console.log('TrackerTable Debug:', {
@@ -83,7 +83,7 @@ const TrackerTable: React.FC<TrackerTableProps> = ({
   });
   
   
-  const teamWorkers = workers.filter(w => w.team === projectTeam || w.team === '공통');
+  const teamWorkers = Array.isArray(workers) ? workers.filter(w => w.team === projectTeam || w.team === '공통') : [];
 
   const handleProcessNameEdit = (processId: number, currentName: string) => {
     setEditingProcessId(processId);

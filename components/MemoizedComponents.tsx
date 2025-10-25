@@ -85,7 +85,7 @@ export const MemoizedWorkerSelect = memo(({
   team: string; 
 }) => {
   const teamWorkers = React.useMemo(() => 
-    workers.filter(w => w.team === team || w.team === '공통'),
+    Array.isArray(workers) ? workers.filter(w => w.team === team || w.team === '공통') : [],
     [workers, team]
   );
 

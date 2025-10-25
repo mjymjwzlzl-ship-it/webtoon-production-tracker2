@@ -590,8 +590,8 @@ const BulkView: React.FC<BulkViewProps> = ({
           {sortedCompletedManuscriptsProjects.map(project => (
             <div key={project.id} className="bg-white rounded-lg shadow-md border border-slate-200 p-2 flex flex-col">
               <div className="flex items-center gap-2 mb-1.5">
-                <h3 
-                  className="text-xs font-semibold text-slate-800 cursor-pointer hover:text-primary-blue transition-colors"
+                <button 
+                  className="text-xs font-semibold text-slate-800 cursor-pointer hover:text-primary-blue transition-colors text-left"
                   onClick={() => onSelectProject(project.id, {
                     searchTerm,
                     sortOrder,
@@ -602,9 +602,10 @@ const BulkView: React.FC<BulkViewProps> = ({
                     isCompactView,
                     checkboxFilter
                   })}
+                  title="클릭하여 일정 탭으로 이동"
                 >
                   {project.title}
-                </h3>
+                </button>
                 {project.memo && (
                   <div className="flex items-center" title="메모 있음">
                     <svg className="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -638,8 +639,8 @@ const BulkView: React.FC<BulkViewProps> = ({
             <div key={project.id} className="bg-white rounded-lg shadow-md border border-slate-200 p-2">
               {/* Project Header */}
               <div className="flex items-center flex-wrap gap-2 mb-2 pb-2 border-b border-slate-200">
-                <h3 
-                  className="font-semibold text-slate-800 cursor-pointer hover:text-primary-blue text-xs"
+                <button 
+                  className="font-semibold text-slate-800 cursor-pointer hover:text-primary-blue text-xs text-left"
                   onClick={() => onSelectProject(project.id, {
                     searchTerm,
                     sortOrder,
@@ -650,9 +651,10 @@ const BulkView: React.FC<BulkViewProps> = ({
                     isCompactView,
                     checkboxFilter
                   })}
+                  title="클릭하여 일정 탭으로 이동"
                 >
                   {project.title}
-                </h3>
+                </button>
                 <span className="text-[10px] text-slate-500">({project.team})</span>
                 <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded-full ${
                   project.type === 'adult' 
@@ -730,8 +732,8 @@ const BulkView: React.FC<BulkViewProps> = ({
             {/* 프로젝트 제목 */}
             <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-slate-50">
               <div className="flex items-center flex-wrap gap-2">
-                <h3 
-                  className="text-lg font-semibold text-slate-700 cursor-pointer hover:text-primary-blue transition-colors"
+                <button 
+                  className="text-lg font-semibold text-slate-700 cursor-pointer hover:text-primary-blue transition-colors text-left"
                   onClick={() => onSelectProject(project.id, {
                     searchTerm,
                     sortOrder,
@@ -742,9 +744,10 @@ const BulkView: React.FC<BulkViewProps> = ({
                     isCompactView,
                     checkboxFilter
                   })}
+                  title="클릭하여 일정 탭으로 이동"
                 >
                   {project.title}
-                </h3>
+                </button>
                 <span className="text-sm text-slate-500">({project.team})</span>
                 <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                   project.type === 'adult' 
