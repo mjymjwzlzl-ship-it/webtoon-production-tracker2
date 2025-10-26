@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import type { Project, ProjectStatus, AdultSubType, IdentifierType, CopeInterSubType } from '../types';
 import LaunchStatus from './LaunchStatus';
 import { db } from '../firebase';
-import { onSnapshot, collection } from 'firebase/firestore';
+import { onSnapshot, collection, doc, getDoc, setDoc } from 'firebase/firestore';
 import { getAdultProcesses } from '../constants';
 
 interface ProjectDetailsProps {
@@ -25,6 +25,8 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({
   const [isDetailsCollapsed, setIsDetailsCollapsed] = useState(false);
   const [showMemoModal, setShowMemoModal] = useState(false);
   const [isEditingMemo, setIsEditingMemo] = useState(false);
+  const [deliveryDay, setDeliveryDay] = useState<string>('');
+  const [initialDeliveryDay, setInitialDeliveryDay] = useState<string>('');
   const [details, setDetails] = useState({
     title: project.title,
     team: project.team,
@@ -45,6 +47,20 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({
     internalAiWeight: project.internalAiWeight,
     memo: project.memo || ''
   });
+
+  // 연재 요일 로드 + 실시간 동기화 (유통과 공유되는 메타 컬렉션)
+  useEffect(() => {
+    const metaRef = doc(db, 'webtoonMeta', project.title);
+    const unsub = onSnapshot(metaRef, (snap) => {
+      const d = (snap.exists() ? (snap.data() as any)?.deliveryDay : '') || '';
+      setDeliveryDay(d);
+      setInitialDeliveryDay(d);
+    }, () => {
+      setDeliveryDay('');
+      setInitialDeliveryDay('');
+    });
+    return () => unsub();
+  }, [project.title]);
 
   // 프로젝트가 변경될 때마다 details 상태 업데이트
   useEffect(() => {
@@ -125,7 +141,14 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({
         console.error('런칭현황 동기화 중 오류:', error);
       }
     }
-    
+    // 연재 요일 저장 (유통과 공유)
+    try {
+      await setDoc(doc(db, 'webtoonMeta', project.title), { deliveryDay }, { merge: true });
+      setInitialDeliveryDay(deliveryDay);
+    } catch (err) {
+      console.error('연재 요일 저장 실패:', err);
+    }
+
     onUpdate(details);
     setIsEditing(false);
   };
@@ -150,6 +173,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({
       copeInterSubType: project.copeInterSubType,
       internalAiWeight: project.internalAiWeight
     });
+    setDeliveryDay(initialDeliveryDay);
     setIsEditing(false);
   };
 
@@ -707,6 +731,29 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({
             </select>
           </div>
           
+          {/* 연재 요일 */}
+          <div className="w-full md:w-auto">
+            <label className="block text-xs font-medium text-gray-700 mb-1">연재 요일</label>
+            <select
+              value={deliveryDay || ''}
+              onChange={(e) => isEditing && setDeliveryDay(e.target.value)}
+              disabled={!isEditing}
+              className={`w-full md:w-28 border rounded-md px-2 py-1 text-xs h-7 ${
+                isEditing ? 'border-gray-300 bg-white' : 'border-gray-200 bg-gray-50'
+              }`}
+            >
+              <option value="">선택</option>
+              <option value="월요일">월요일</option>
+              <option value="화요일">화요일</option>
+              <option value="수요일">수요일</option>
+              <option value="목요일">목요일</option>
+              <option value="금요일">금요일</option>
+              <option value="토요일">토요일</option>
+              <option value="일요일">일요일</option>
+              <option value="매일">매일</option>
+            </select>
+          </div>
+
           {/* 작품 상태 */}
           <div className="flex-grow min-w-[250px]">
             <label className="block text-xs font-medium text-gray-700 mb-1">작품 상태</label>

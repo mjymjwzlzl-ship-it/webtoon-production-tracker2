@@ -171,11 +171,11 @@ const EditableCell: React.FC<EditableCellProps> = ({ initialValue, onSave, isEdi
 
   return (
     <td 
-        className={`border p-0 text-center w-[48px] min-w-[48px] max-w-[48px] mobile-table-cell table-cell ${!isHeader ? 'cursor-pointer' : (isEditable ? 'cursor-pointer' : '')}`}
+        className={`border p-0 text-center w-[48px] min-w-[48px] max-w-[48px] h-[40px] mobile-table-cell table-cell ${!isHeader ? 'cursor-pointer' : (isEditable ? 'cursor-pointer' : '')}`}
         onClick={handleCellClick}
         onDoubleClick={handleCellDoubleClick}
     >
-      <div className={`w-[40px] h-[40px] mx-auto my-[2px] flex items-center justify-center text-[11px] mobile-compact ${getDisplayStyle()}`}>
+      <div className={`w-full h-full min-h-[40px] flex items-center justify-center text-[11px] mobile-compact ${getDisplayStyle()}`}>
         {currentStatus === 'empty' ? '' : (memo || '')}
       </div>
     </td>

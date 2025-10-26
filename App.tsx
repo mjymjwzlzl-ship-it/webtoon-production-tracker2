@@ -10,7 +10,7 @@ import WorkerAssignments from './components/WorkerAssignments';
 import ConfirmationModal from './components/ConfirmationModal';
 import AddProjectModal from './components/AddProjectModal';
 import ProjectDetails from './components/ProjectDetails';
-import LaunchStatus from './components/LaunchStatus';
+// import LaunchStatus from './components/LaunchStatus';
 import LaunchSidebar from './components/LaunchSidebar';
 import BulkView from './components/BulkView';
 import ZoomViewer from './components/ZoomViewer';
@@ -73,12 +73,11 @@ const createProject = (type: ProjectType, team: Team, adultSubType?: AdultSubTyp
   const processes = type === 'adult' 
     ? (adultSubType ? getAdultProcesses(adultSubType) : ADULT_PROCESSES)
     : GENERAL_PROCESSES;
-  
-  return {
+
+  const base = {
     title: INITIAL_PROJECT_TITLE,
     type: type,
-    adultSubType: type === 'adult' ? adultSubType : undefined,
-    copeInterSubType: type === 'adult' && adultSubType === 'cope-inter' ? 'v1-brush' : null,
+    // adultSubType/copeInterSubType는 일반 작품일 경우 저장 안 함
     internalAiWeight: '',
     team: team,
     storyWriter: '',
@@ -97,8 +96,17 @@ const createProject = (type: ProjectType, team: Team, adultSubType?: AdultSubTyp
     hasSynopsis: false,
     hasProposal: false,
     lastModified: Date.now(),
-    status: 'production',
+    status: 'production' as const,
   };
+
+  if (type === 'adult') {
+    const adultBase = { ...base, adultSubType } as Omit<Project, 'id'>;
+    if (adultSubType === 'cope-inter') {
+      return { ...adultBase, copeInterSubType: 'v1-brush' } as Omit<Project, 'id'>;
+    }
+    return adultBase;
+  }
+  return { ...base } as Omit<Project, 'id'>;
 };
 
 // Helper function to aggressively sanitize data from Firestore. It converts any object-like
@@ -147,7 +155,7 @@ const App: React.FC = () => {
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [selectedTeam, setSelectedTeam] = useState<Team | 'all'>('all');
   const [view, setView] = useState<'tracker' | 'workers' | 'dailyTasks'>('tracker');
-  const [mainTab, setMainTab] = useState<'schedule' | 'launch' | 'launch2'>('schedule');
+  const [mainTab, setMainTab] = useState<'schedule' | 'launch2'>('schedule');
   const [isBulkView, setIsBulkView] = useState(false);
   const [showCompletedOnly, setShowCompletedOnly] = useState(false);
   const [bulkViewState, setBulkViewState] = useState<any>(null);
@@ -384,6 +392,22 @@ const App: React.FC = () => {
       if (unsubscribeWorkers) unsubscribeWorkers();
     };
   }, []);
+
+  // 마지막으로 본 메인 탭 복원
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('wt_main_tab');
+      if (saved === 'schedule' || saved === 'launch2') {
+        setMainTab(saved as any);
+      } else if (saved === 'launch') {
+        // 과거 저장값이 있는 경우 런칭2로 매핑
+        setMainTab('launch2');
+      }
+    } catch {}
+  }, []);
+  useEffect(() => {
+    try { localStorage.setItem('wt_main_tab', mainTab); } catch {}
+  }, [mainTab]);
 
   // 공지사항 데이터 실시간 가져오기
   useEffect(() => {
@@ -1014,6 +1038,13 @@ const App: React.FC = () => {
       console.log('popstate 이벤트 발생:', event.state);
       
       if (event.state) {
+        // 납품(유통) → 일정 이동 후 뒤로가기 시 유통 탭으로 복귀
+        if ((event.state as any).returnToDelivery) {
+          setMainTab('launch2');
+          // 스크롤 상단으로
+          setTimeout(() => window.scrollTo(0, 0), 0);
+          return;
+        }
         if (event.state.isBulkView) {
           // 일괄보기 상태로 복원
           console.log('일괄보기 상태로 복원', event.state.bulkViewState);
@@ -1272,7 +1303,7 @@ const App: React.FC = () => {
     }
   };
 
-  const getMainTabClass = (tabName: 'schedule' | 'launch' | 'launch2') => {
+  const getMainTabClass = (tabName: 'schedule' | 'launch2') => {
     const baseClasses = "px-4 py-2 font-bold text-sm rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-blue/50 flex items-center justify-center h-10";
     if (mainTab === tabName) {
       return `${baseClasses} bg-primary-blue text-white shadow`;
@@ -1333,20 +1364,25 @@ const App: React.FC = () => {
         </div>;
     }
 
-    // 런칭현황 탭
-      if (mainTab === 'launch') {
-    // 필터링 제거하고 모든 프로젝트 전달
-    console.log('🚀 App.tsx 런칭 탭 - 모든 프로젝트 전달:', projects.length, projects.map(p => ({ id: p.id, title: p.title, status: p.status })));
-    
-    return <LaunchStatus projects={projects} onAddProject={() => {}} />;
-  }
-
     // 런칭2 탭
     if (mainTab === 'launch2') {
       return (
         <div className="flex-1 p-2 sm:p-3 lg:p-6">
           <div className="w-full">
-            <WebtoonTracker syncProjects={projects.map(p => ({ id: p.id, title: p.title, status: p.status }))} />
+            <WebtoonTracker
+              syncProjects={projects.map(p => ({ id: p.id, title: p.title, status: p.status, completedCount: (() => { try { const maxProcessId = Math.max(...(p.processes || []).map(pr => pr.id || 0)); const start = (p.startEpisode || 1); const end = (p.episodeCount || 0) + start - 1; let cnt = 0; for (let ep = start; ep <= end; ep++) { const key = `${maxProcessId}-${ep}`; const cell = (p.statuses || {})[key]; if (cell && (cell.status === 'done')) cnt++; } return cnt; } catch { return 0; } })(), totalEpisodes: (() => { try { const start = (p.startEpisode || 1); const end = (p.episodeCount || 0) + start - 1; return end - start + 1; } catch { return p.episodeCount || 0; } })() }))}
+              onJumpToSchedule={(projectId) => {
+                try {
+                  // 뒤로가기로 납품(Delivery)로 복귀할 수 있도록 히스토리 스택에 상태 추가
+                  window.history.pushState({ returnToDelivery: true }, '');
+                } catch {}
+                // 일정 탭으로 전환 후 해당 작품 선택
+                setMainTab('schedule');
+                setActiveProjectId(projectId);
+                // 스크롤 상단으로 이동
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+            />
           </div>
         </div>
       );
@@ -1675,19 +1711,6 @@ const App: React.FC = () => {
                 <button onClick={() => setMainTab('schedule')} className={getMainTabClass('schedule')}>
                   일정
                 </button>
-                <button
-                  onClick={() => setIsUrgentNoticeBoardOpen(true)}
-                  className={getUrgentNoticeButtonClass()}
-                  title="공지 게시판"
-                >
-                  <span>공지</span>
-                </button>
-                <button onClick={() => setMainTab('launch')} className={getMainTabClass('launch')}>
-                  런칭
-                </button>
-                <button onClick={() => setMainTab('launch2')} className={getMainTabClass('launch2')}>
-                  런칭2
-                </button>
                 {mainTab === 'schedule' && (
                   <button
                     onClick={() => setIsBulkView(!isBulkView)}
@@ -1696,6 +1719,18 @@ const App: React.FC = () => {
                     {isBulkView ? '개별' : '일괄'}
                   </button>
                 )}
+                <button
+                  onClick={() => setIsUrgentNoticeBoardOpen(true)}
+                  className={getUrgentNoticeButtonClass()}
+                  title="공지 게시판"
+                >
+                  <span>공지</span>
+                </button>
+                {/* 런칭 탭 제거 */}
+                <button onClick={() => setMainTab('launch2')} className={getMainTabClass('launch2')}>
+                  유통
+                </button>
+                {mainTab === 'schedule' && null}
                 {mainTab === 'schedule' && (
                   <>
                     <button

@@ -33,6 +33,7 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   const { request } = event;
+  // 원복: 모든 요청을 훅에 진입시키되 캐시에 저장은 http/https만 하도록 아래에서 가드
 
   // 네비게이션 요청은 항상 네트워크 우선 (index.html 최신 유지)
   if (request.mode === 'navigate' || request.destination === 'document') {
@@ -60,10 +61,14 @@ self.addEventListener('fetch', (event) => {
       const cached = await cache.match(request);
       const fetchPromise = fetch(request)
         .then((networkResponse) => {
-          // 성공 응답만 캐시에 저장
-          if (networkResponse && networkResponse.status === 200 && request.method === 'GET') {
-            cache.put(request, networkResponse.clone());
-          }
+          // 성공 응답만 캐시에 저장 (http/https GET 요청만 허용)
+          try {
+            const url = new URL(request.url);
+            const isHttp = url.protocol === 'http:' || url.protocol === 'https:';
+            if (isHttp && networkResponse && networkResponse.status === 200 && request.method === 'GET') {
+              cache.put(request, networkResponse.clone());
+            }
+          } catch {}
           return networkResponse;
         })
         .catch(() => cached);

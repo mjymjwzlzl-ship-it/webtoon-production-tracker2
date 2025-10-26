@@ -9,7 +9,7 @@ export default {
 	theme: {
 		extend: {
 			fontFamily: {
-				sans: ['Nanum Gothic', 'sans-serif'],
+				sans: ['Arial', 'Noto Sans KR', 'sans-serif'],
 			},
 			colors: {
 				'primary-blue': '#00529b',
